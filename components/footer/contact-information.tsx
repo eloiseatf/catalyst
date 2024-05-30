@@ -1,22 +1,10 @@
 import { Fragment } from 'react';
 
-import { FragmentOf, graphql } from '~/client/graphql';
+import { getStoreSettings } from '~/client/queries/get-store-settings';
 
-export const ContactInformationFragment = graphql(`
-  fragment ContactInformationFragment on Settings {
-    contact {
-      address
-      phone
-    }
-  }
-`);
-
-interface Props {
-  data: FragmentOf<typeof ContactInformationFragment>;
-}
-
-export const ContactInformation = ({ data }: Props) => {
-  const { contact } = data;
+export const ContactInformation = async () => {
+  const settings = await getStoreSettings();
+  const contact = settings?.contact;
 
   if (!contact) {
     return null;

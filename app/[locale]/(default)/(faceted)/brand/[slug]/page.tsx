@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, getTranslations, unstable_setRequestLocale } from 'next-intl/server';
 
+import { getBrand } from '~/client/queries/get-brand';
 import { ProductCard } from '~/components/product-card';
 import { LocaleType } from '~/i18n';
 
@@ -12,20 +13,20 @@ import { Pagination } from '../../_components/pagination';
 import { SortBy } from '../../_components/sort-by';
 import { fetchFacetedSearch } from '../../fetch-faceted-search';
 
-import { getBrand } from './page-data';
-
 interface Props {
   params: {
     slug: string;
     locale: LocaleType;
   };
-  searchParams: Record<string, string | string[] | undefined>;
+  searchParams: { [key: string]: string | string[] | undefined };
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const brandId = Number(params.slug);
 
-  const brand = await getBrand({ entityId: brandId });
+  const brand = await getBrand({
+    brandId,
+  });
 
   const title = brand?.name;
 
@@ -43,10 +44,11 @@ export default async function Brand({ params: { slug, locale }, searchParams }: 
 
   const brandId = Number(slug);
 
-  const [brand, search] = await Promise.all([
-    getBrand({ entityId: brandId }),
-    fetchFacetedSearch({ ...searchParams, brand: [slug] }),
-  ]);
+  const search = await fetchFacetedSearch({ ...searchParams, brand: [slug] });
+
+  const brand = await getBrand({
+    brandId,
+  });
 
   if (!brand) {
     notFound();

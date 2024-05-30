@@ -1,24 +1,18 @@
 import { z } from 'zod';
 
 import { client } from '..';
-import { graphql, VariablesOf } from '../graphql';
+import { graphql } from '../graphql';
 
-const ChangePasswordFieldsSchema = z.object({
-  customerId: z.string(),
-  customerToken: z.string(),
-  currentPassword: z.string().min(1),
-  newPassword: z.string().min(1),
-  confirmPassword: z.string().min(1),
+export const ChangePasswordSchema = z.object({
+  newPassword: z.string(),
+  confirmPassword: z.string(),
 });
 
-export const CustomerChangePasswordSchema = ChangePasswordFieldsSchema.omit({
-  customerId: true,
-  customerToken: true,
-});
-
-export const ChangePasswordSchema = ChangePasswordFieldsSchema.omit({
-  currentPassword: true,
-}).required();
+interface SubmitChangePassword {
+  newPassword: z.infer<typeof ChangePasswordSchema>['newPassword'];
+  token: string;
+  customerEntityId: number;
+}
 
 const SUBMIT_CHANGE_PASSWORD_MUTATION = graphql(`
   mutation ChangePassword($input: ResetPasswordInput!) {
@@ -36,13 +30,11 @@ const SUBMIT_CHANGE_PASSWORD_MUTATION = graphql(`
   }
 `);
 
-type ChangePasswordInput = VariablesOf<typeof SUBMIT_CHANGE_PASSWORD_MUTATION>['input'];
-
 export const submitChangePassword = async ({
   newPassword,
   token,
   customerEntityId,
-}: ChangePasswordInput) => {
+}: SubmitChangePassword) => {
   const variables = {
     input: {
       token,
@@ -56,5 +48,5 @@ export const submitChangePassword = async ({
     variables,
   });
 
-  return response.data.customer.resetPassword;
+  return response.data;
 };

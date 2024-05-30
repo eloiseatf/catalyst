@@ -1,5 +1,3 @@
-import { getSessionCustomerId } from '~/auth';
-
 import { client } from '..';
 import { graphql } from '../graphql';
 
@@ -9,6 +7,26 @@ const SELECT_CHECKOUT_SHIPPING_OPTION_MUTATION = graphql(`
       selectCheckoutShippingOption(input: $input) {
         checkout {
           entityId
+          shippingCostTotal {
+            value
+            currencyCode
+          }
+          handlingCostTotal {
+            value
+            currencyCode
+          }
+          shippingConsignments {
+            entityId
+            selectedShippingOption {
+              entityId
+              description
+              type
+              cost {
+                value
+                currencyCode
+              }
+            }
+          }
         }
       }
     }
@@ -24,8 +42,6 @@ export const selectCheckoutShippingOption = async ({
   consignmentEntityId: string;
   shippingOptionEntityId: string;
 }) => {
-  const customerId = await getSessionCustomerId();
-
   const response = await client.fetch({
     document: SELECT_CHECKOUT_SHIPPING_OPTION_MUTATION,
     variables: {
@@ -37,9 +53,13 @@ export const selectCheckoutShippingOption = async ({
         },
       },
     },
-    customerId,
-    fetchOptions: { cache: 'no-store' },
   });
 
-  return response.data.checkout.selectCheckoutShippingOption?.checkout;
+  const shippingCosts = response.data.checkout.selectCheckoutShippingOption?.checkout;
+
+  if (shippingCosts) {
+    return shippingCosts;
+  }
+
+  return null;
 };

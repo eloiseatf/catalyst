@@ -12,6 +12,14 @@ export const Credentials = z.object({
   password: z.string().min(1),
 });
 
+declare module 'next-auth' {
+  interface Session {
+    user?: {
+      id?: number;
+    };
+  }
+}
+
 const config = {
   session: {
     strategy: 'jwt',
@@ -21,9 +29,9 @@ const config = {
   },
   callbacks: {
     session({ session, token }) {
-      if (token.sub) {
-        session.user.id = token.sub;
-      }
+      session.user ||= {};
+
+      session.user.id = token.sub ? parseInt(token.sub, 10) : undefined;
 
       return session;
     },
@@ -32,7 +40,7 @@ const config = {
     async signIn({ user }) {
       const cookieCartId = cookies().get('cartId')?.value;
 
-      if (cookieCartId && user.id) {
+      if (cookieCartId) {
         try {
           await assignCartToCustomer(user.id, cookieCartId);
         } catch (error) {
@@ -77,16 +85,20 @@ const config = {
   ],
 } satisfies NextAuthConfig;
 
-const { handlers, auth, signIn, signOut } = NextAuth(config);
+const { handlers, auth, signIn, signOut, update } = NextAuth(config);
 
 const getSessionCustomerId = async () => {
   try {
     const session = await auth();
 
-    return session?.user?.id;
+    if (!session?.user?.id) {
+      return;
+    }
+
+    return session.user.id;
   } catch {
     // No empty
   }
 };
 
-export { handlers, auth, signIn, signOut, getSessionCustomerId };
+export { handlers, auth, signIn, signOut, update, getSessionCustomerId };

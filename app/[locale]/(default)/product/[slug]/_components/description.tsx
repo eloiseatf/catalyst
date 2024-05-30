@@ -1,18 +1,10 @@
 import { useTranslations } from 'next-intl';
 
-import { FragmentOf, graphql } from '~/client/graphql';
+import { getProduct } from '~/client/queries/get-product';
 
-export const DescriptionFragment = graphql(`
-  fragment DescriptionFragment on Product {
-    description
-  }
-`);
+type Product = Awaited<ReturnType<typeof getProduct>>;
 
-interface Props {
-  product: FragmentOf<typeof DescriptionFragment>;
-}
-
-export const Description = ({ product }: Props) => {
+export const Description = ({ product }: { product: NonNullable<Product> }) => {
   const t = useTranslations('Product.DescriptionAndReviews');
 
   if (!product.description) {

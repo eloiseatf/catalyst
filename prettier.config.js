@@ -6,7 +6,7 @@ const config = {
   singleQuote: true,
   trailingComma: 'all',
   plugins: ['prettier-plugin-tailwindcss'],
-  tailwindFunctions: ['cn'],
+  tailwindFunctions: ['cs'],
 };
 
 module.exports = config;

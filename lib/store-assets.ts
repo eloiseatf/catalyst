@@ -1,5 +1,6 @@
 const cdnHostname = process.env.BIGCOMMERCE_CDN_HOSTNAME ?? 'cdn11.bigcommerce.com';
 const storeHash = process.env.BIGCOMMERCE_STORE_HASH ?? '';
+const commitSha = process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA;
 
 /**
  * Build the CDN image URL.
@@ -12,7 +13,7 @@ const storeHash = process.env.BIGCOMMERCE_STORE_HASH ?? '';
  * @returns {string} The CDN image URL.
  */
 const cdnImageUrlBuilder = (sizeSegment: string, source: string, path: string): string => {
-  return `https://${cdnHostname}/s-${storeHash}/images/stencil/${sizeSegment}/${source}/${path}`;
+  return `https://${cdnHostname}/s-${storeHash}/images/stencil/${sizeSegment}/${source}/${path}${commitSha ? `?v=${commitSha}` : ''}`;
 };
 
 /**
@@ -25,7 +26,7 @@ const cdnImageUrlBuilder = (sizeSegment: string, source: string, path: string): 
  * @returns {string} The full URL to the content asset.
  */
 export const contentAssetUrl = (path: string): string => {
-  return `https://${cdnHostname}/s-${storeHash}/content/${path}`;
+  return `https://${cdnHostname}/s-${storeHash}/content/${path}${commitSha ? `?v=${commitSha}` : ''}`;
 };
 
 /**
@@ -37,7 +38,7 @@ export const contentAssetUrl = (path: string): string => {
  */
 export const contentImageUrl = (path: string, sizeParam?: string): string => {
   // return a urlTemplate that can be used with the <BcImage> component
-  return cdnImageUrlBuilder(sizeParam || '{:size}', 'content', path);
+  return cdnImageUrlBuilder(`${sizeParam || '{:size}'}`, 'content', path);
 };
 
 /**
@@ -49,5 +50,5 @@ export const contentImageUrl = (path: string, sizeParam?: string): string => {
  */
 export const imageManagerImageUrl = (filename: string, sizeParam?: string): string => {
   // return a urlTemplate that can be used with the <BcImage> component
-  return cdnImageUrlBuilder(sizeParam || '{:size}', 'image-manager', filename);
+  return cdnImageUrlBuilder(`${sizeParam || '{:size}'}`, 'image-manager', filename);
 };

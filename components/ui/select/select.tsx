@@ -27,18 +27,16 @@ interface SelectProps extends ComponentPropsWithRef<SelectType> {
   placeholder?: string;
   className?: string;
   'aria-label'?: string;
-  id?: string;
 }
 
-// We need to pass the ref to the Trigger component so, we need to type it as such.
+// We need to pass the ref to the Trigger component so we need to type it as such.
 const Select = forwardRef<ElementRef<SelectTriggerType>, SelectProps>(
-  ({ children, placeholder, className, variant, 'aria-label': ariaLabel, id, ...props }, ref) => {
+  ({ children, placeholder, className, variant, 'aria-label': ariaLabel, ...props }, ref) => {
     return (
       <SelectPrimitive.Root {...props}>
         <SelectPrimitive.Trigger
           aria-label={ariaLabel}
           className={cn(selectVariants({ variant, className }))}
-          id={id}
           ref={ref}
         >
           <SelectPrimitive.Value placeholder={placeholder} />
@@ -61,27 +59,19 @@ type SelectContentType = typeof SelectPrimitive.Content;
 const SelectContent = forwardRef<
   ElementRef<SelectContentType>,
   ComponentPropsWithRef<SelectContentType>
->(({ children, className, position = 'popper', ...props }, ref) => {
+>(({ children, className, ...props }, ref) => {
   return (
     <SelectPrimitive.Portal>
       <SelectPrimitive.Content
-        position={position}
+        position="popper"
         {...props}
         className={cn(
-          'max-h-radix-select-content-available-height relative w-full bg-white shadow-md',
-          position === 'popper' &&
-            'data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1',
+          'relative w-full bg-white shadow-md max-h-radix-select-content-available-height data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1',
           className,
         )}
         ref={ref}
       >
-        <SelectPrimitive.Viewport
-          className={cn(
-            'w-full',
-            position === 'popper' &&
-              'h-[var(--radix-select-trigger-height)] min-w-[var(--radix-select-trigger-width)]',
-          )}
-        >
+        <SelectPrimitive.Viewport className="w-full min-w-[var(--radix-select-trigger-width)] h-radix-select-content-available-height">
           {children}
         </SelectPrimitive.Viewport>
       </SelectPrimitive.Content>

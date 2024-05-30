@@ -1,63 +1,22 @@
-import { removeEdgesAndNodes } from '@bigcommerce/catalyst-client';
-import { getFormatter, getTranslations } from 'next-intl/server';
+import { Rating } from '@bigcommerce/components/rating';
+import { getTranslations } from 'next-intl/server';
 
-import { client } from '~/client';
-import { graphql } from '~/client/graphql';
-import { revalidate } from '~/client/revalidate-target';
-import { Rating } from '~/components/ui/rating';
+import { getProductReviews } from '~/client/queries/get-product-reviews';
 
-import { ProductReviewSchema, ProductReviewSchemaFragment } from './product-review-schema';
-
-const ReviewsQuery = graphql(
-  `
-    query ReviewsQuery($entityId: Int!) {
-      site {
-        product(entityId: $entityId) {
-          reviews(first: 5) {
-            edges {
-              node {
-                ...ProductReviewSchemaFragment
-                author {
-                  name
-                }
-                entityId
-                title
-                text
-                rating
-                createdAt {
-                  utc
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  `,
-  [ProductReviewSchemaFragment],
-);
+import { ProductReviewSchema } from './product-review-schema';
 
 interface Props {
   productId: number;
 }
 
 export const Reviews = async ({ productId }: Props) => {
+  const product = await getProductReviews(productId);
   const t = await getTranslations('Product.DescriptionAndReviews');
-  const format = await getFormatter();
+  const reviews = product?.reviews;
 
-  const { data } = await client.fetch({
-    document: ReviewsQuery,
-    variables: { entityId: productId },
-    fetchOptions: { next: { revalidate } },
-  });
-
-  const product = data.site.product;
-
-  if (!product) {
+  if (!reviews) {
     return null;
   }
-
-  const reviews = removeEdgesAndNodes(product.reviews);
 
   return (
     <>
@@ -73,9 +32,7 @@ export const Reviews = async ({ productId }: Props) => {
 
       <ul className="lg:grid lg:grid-cols-2 lg:gap-8">
         {reviews.length === 0 ? (
-          <li>
-            <p className="pb-6 pt-1">{t('unreviewed')}</p>
-          </li>
+          <p className="pb-6 pt-1">{t('unreviewed')}</p>
         ) : (
           reviews.map((review) => {
             return (
@@ -87,9 +44,9 @@ export const Reviews = async ({ productId }: Props) => {
                 <h4 className="text-base font-semibold">{review.title}</h4>
                 <p className="mb-2 text-gray-500">
                   {t('reviewAuthor', { author: review.author.name })}{' '}
-                  {format.dateTime(new Date(review.createdAt.utc), {
-                    dateStyle: 'medium',
-                  })}
+                  {new Intl.DateTimeFormat('en-US', { dateStyle: 'medium' }).format(
+                    new Date(review.createdAt.utc),
+                  )}
                 </p>
                 <p className="mb-6">{review.text}</p>
               </li>

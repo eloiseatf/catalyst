@@ -7,28 +7,7 @@ enum LocalePrefixes {
   ASNEEDED = 'as-needed', // removes prefix on default locale
 }
 
-const locales = [
-  'da',
-  'en',
-  'es-419',
-  'es-AR',
-  'es-CL',
-  'es-CO',
-  'es-LA',
-  'es-MX',
-  'es-PE',
-  'es',
-  'it',
-  'nl',
-  'pl',
-  'pt',
-  'de',
-  'fr',
-  'ja',
-  'no',
-  'pt-BR',
-  'sv',
-] as const;
+const locales = ['en'] as const;
 
 type LocalePrefixesType = `${LocalePrefixes}`;
 
@@ -40,13 +19,13 @@ const defaultLocale = 'en';
 type LocaleType = (typeof locales)[number];
 
 export default getRequestConfig(async (params) => {
-  let lang = params.locale as LocaleType; // eslint-disable-line
+  let lang = params.locale as LocaleType // eslint-disable-line
 
   if (!locales.includes(lang)) notFound();
 
   return {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    messages: await import(`./messages/${lang}`),
+    messages: await import(`./messages/${lang}.json`),
   };
 });
 

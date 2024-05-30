@@ -1,114 +1,146 @@
-import { NextIntlClientProvider } from 'next-intl';
-import { getFormatter, getLocale, getMessages, getTranslations } from 'next-intl/server';
+'use client';
 
-import { FragmentOf, graphql } from '~/client/graphql';
+import { useTranslations } from 'next-intl';
+import { createContext, Dispatch, SetStateAction, useState } from 'react';
 
-import { CouponCode } from './coupon-code';
-import { CouponCodeFragment } from './coupon-code/fragment';
+import { getCart } from '~/client/queries/get-cart';
+import { ExistingResultType } from '~/client/util';
+
+import { getShippingCountries } from '../_actions/get-shipping-countries';
+
 import { ShippingEstimator } from './shipping-estimator';
-import { ShippingEstimatorFragment } from './shipping-estimator/fragment';
-import { getShippingCountries } from './shipping-estimator/get-shipping-countries';
 
-const MoneyFieldsFragment = graphql(`
-  fragment MoneyFields on Money {
-    currencyCode
-    value
-  }
-`);
+export const createCurrencyFormatter = (currencyCode: string) =>
+  new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: currencyCode,
+  });
 
-export const CheckoutSummaryFragment = graphql(
-  `
-    fragment CheckoutSummaryFragment on Checkout {
-      ...ShippingEstimatorFragment
-      ...CouponCodeFragment
-      subtotal {
-        ...MoneyFields
-      }
-      grandTotal {
-        ...MoneyFields
-      }
-      taxTotal {
-        ...MoneyFields
-      }
-      cart {
-        currencyCode
-        discountedAmount {
-          ...MoneyFields
-        }
-      }
-    }
-  `,
-  [MoneyFieldsFragment, ShippingEstimatorFragment, CouponCodeFragment],
-);
-
-interface Props {
-  data: FragmentOf<typeof CheckoutSummaryFragment>;
+type CartSummary = ExistingResultType<typeof getCart>;
+export type CheckoutSummary = CartSummary & {
+  shippingCostTotal: {
+    currencyCode: string;
+    value: number;
+  };
+  handlingCostTotal: {
+    currencyCode: string;
+    value: number;
+  };
+  consignmentEntityId: string;
+};
+export interface ShippingCosts {
+  shippingCostTotal: number;
+  handlingCostTotal: number;
+  selectedShippingOption: string;
 }
+type ShippingCountries = ExistingResultType<typeof getShippingCountries>;
 
-export const CheckoutSummary = async ({ data }: Props) => {
-  const locale = await getLocale();
-  const t = await getTranslations({ locale, namespace: 'Cart.CheckoutSummary' });
-  const format = await getFormatter({ locale });
-  const messages = await getMessages({ locale });
+export const CheckoutContext = createContext<{
+  availableShippingCountries: ShippingCountries;
+  checkoutEntityId: string;
+  consignmentEntityId: string | null;
+  shippingCosts: ShippingCosts | null;
+  currencyCode: string;
+  isShippingMethodSelected: boolean;
+  setIsShippingMethodSelected: (newIsShippingMethodSelected: boolean) => void;
+  updateCheckoutSummary: Dispatch<SetStateAction<CheckoutSummary>>;
+}>({
+  availableShippingCountries: [],
+  checkoutEntityId: '',
+  consignmentEntityId: '',
+  currencyCode: '',
+  isShippingMethodSelected: false,
+  setIsShippingMethodSelected: () => undefined,
+  shippingCosts: null,
+  updateCheckoutSummary: () => undefined,
+});
 
-  const shippingCountries = await getShippingCountries();
+export const CheckoutSummary = ({
+  cart,
+  shippingCountries,
+  shippingCosts,
+}: {
+  cart: NonNullable<CartSummary>;
+  shippingCountries: ShippingCountries;
+  shippingCosts: ShippingCosts | null;
+}) => {
+  const t = useTranslations('Cart.CheckoutSummary');
+  const [isShippingMethodSelected, setIsShippingMethodSelected] = useState(false);
+  const [checkoutSummary, updateCheckoutSummary] = useState<CheckoutSummary>({
+    ...cart,
+    shippingCostTotal: {
+      currencyCode: cart.currencyCode,
+      value: shippingCosts?.shippingCostTotal ?? 0,
+    },
+    handlingCostTotal: {
+      currencyCode: cart.currencyCode,
+      value: shippingCosts?.handlingCostTotal ?? 0,
+    },
+    consignmentEntityId: '',
+  });
 
-  const { cart, grandTotal, subtotal, taxTotal } = data;
+  const currencyFormatter = createCurrencyFormatter(checkoutSummary.currencyCode);
+  const extractCartlineItemsData = ({
+    entityId,
+    productEntityId,
+    quantity,
+    variantEntityId,
+  }: (typeof cart.lineItems.physicalItems)[number]) => ({
+    lineItemEntityId: entityId,
+    productEntityId,
+    quantity,
+    variantEntityId,
+  });
 
   return (
-    <>
+    <CheckoutContext.Provider
+      value={{
+        availableShippingCountries: shippingCountries,
+        checkoutEntityId: checkoutSummary.entityId,
+        consignmentEntityId: checkoutSummary.consignmentEntityId,
+        currencyCode: checkoutSummary.currencyCode,
+        isShippingMethodSelected,
+        setIsShippingMethodSelected,
+        shippingCosts,
+        updateCheckoutSummary,
+      }}
+    >
       <div className="flex justify-between border-t border-t-gray-200 py-4">
-        <span className="font-semibold">{t('subTotal')}</span>
-        <span>
-          {format.number(subtotal?.value || 0, {
-            style: 'currency',
-            currency: cart?.currencyCode,
-          })}
+        <span className="text-base font-semibold">{t('subTotal')}</span>
+        <span className="text-base">
+          {currencyFormatter.format(cart.totalExtendedListPrice.value)}
         </span>
       </div>
 
-      <NextIntlClientProvider locale={locale} messages={{ Cart: messages.Cart ?? {} }}>
-        <ShippingEstimator checkout={data} shippingCountries={shippingCountries} />
-      </NextIntlClientProvider>
+      <ShippingEstimator
+        shippingItems={checkoutSummary.lineItems.physicalItems.reduce<
+          Array<{ quantity: number; lineItemEntityId: string }>
+        >((items, product) => {
+          const { lineItemEntityId, quantity } = extractCartlineItemsData(product);
 
-      {cart?.discountedAmount && (
-        <div className="flex justify-between border-t border-t-gray-200 py-4">
-          <span className="font-semibold">{t('discounts')}</span>
-          <span>
-            -
-            {format.number(cart.discountedAmount.value, {
-              style: 'currency',
-              currency: cart.currencyCode,
-            })}
-          </span>
-        </div>
-      )}
+          items.push({ quantity, lineItemEntityId });
 
-      <NextIntlClientProvider locale={locale} messages={{ Cart: messages.Cart ?? {} }}>
-        <CouponCode checkout={data} />
-      </NextIntlClientProvider>
+          return items;
+        }, [])}
+      />
 
-      {taxTotal && (
-        <div className="flex justify-between border-t border-t-gray-200 py-4">
-          <span className="font-semibold">{t('tax')}</span>
-          <span>
-            {format.number(taxTotal.value, {
-              style: 'currency',
-              currency: cart?.currencyCode,
-            })}
-          </span>
-        </div>
-      )}
+      <div className="flex justify-between border-t border-t-gray-200 py-4">
+        <span className="text-base font-semibold">{t('discounts')}</span>
+        <span className="text-base">
+          -{currencyFormatter.format(checkoutSummary.discountedAmount.value)}
+        </span>
+      </div>
 
       <div className="flex justify-between border-t border-t-gray-200 py-4 text-xl font-bold lg:text-2xl">
         {t('grandTotal')}
         <span>
-          {format.number(grandTotal?.value || 0, {
-            style: 'currency',
-            currency: cart?.currencyCode,
-          })}
+          {currencyFormatter.format(
+            checkoutSummary.amount.value +
+              checkoutSummary.shippingCostTotal.value +
+              checkoutSummary.handlingCostTotal.value,
+          )}
         </span>
       </div>
-    </>
+    </CheckoutContext.Provider>
   );
 };

@@ -1,30 +1,27 @@
+import { Rating } from '@bigcommerce/components/rating';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { useId } from 'react';
 
-import { FragmentOf, graphql } from '~/client/graphql';
-import { Rating } from '~/components/ui/rating';
+import { getProductReviews } from '~/client/queries/get-product-reviews';
 import { cn } from '~/lib/utils';
 
-export const ReviewSummaryFragment = graphql(`
-  fragment ReviewSummaryFragment on Product {
-    reviewSummary {
-      numberOfReviews
-      averageRating
-    }
-  }
-`);
-
 interface Props {
-  data: FragmentOf<typeof ReviewSummaryFragment>;
+  productId: number;
 }
 
-export const ReviewSummary = async ({ data }: Props) => {
+export const ReviewSummary = async ({ productId }: Props) => {
   const summaryId = useId();
   const locale = await getLocale();
 
   const t = await getTranslations({ locale, namespace: 'Product.Details.ReviewSummary' });
 
-  const { numberOfReviews, averageRating } = data.reviewSummary;
+  const reviews = await getProductReviews(productId);
+
+  if (!reviews) {
+    return null;
+  }
+
+  const { numberOfReviews, averageRating } = reviews.reviewSummary;
 
   const hasNoReviews = numberOfReviews === 0;
 

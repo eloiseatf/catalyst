@@ -1,9 +1,8 @@
 'use client';
 
+import { Tag, TagAction, TagContent } from '@bigcommerce/components/tag';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-
-import { Tag, TagAction, TagContent } from '~/components/ui/tag';
 
 import type { Facet, PageType, PublicParamKeys } from '../types';
 
@@ -20,7 +19,7 @@ interface FacetProps<Key extends string> {
 
 const mapFacetsToRefinements = ({ facets, pageType }: Props) =>
   facets
-    .map<Array<FacetProps<string>>>((facet) => {
+    .map<Array<FacetProps<PublicParamKeys | string>>>((facet) => {
       switch (facet.__typename) {
         case 'BrandSearchFilter':
           if (pageType === 'brand') {
@@ -43,7 +42,7 @@ const mapFacetsToRefinements = ({ facets, pageType }: Props) =>
           return facet.categories
             .filter((category) => category.isSelected)
             .map<FacetProps<PublicParamKeys>>(({ name, entityId }) => ({
-              key: 'categoryIn',
+              key: 'category',
               display_name: name,
               value: String(entityId),
             }));
@@ -120,11 +119,11 @@ export const RefineBy = (props: Props) => {
 
     const params = new URLSearchParams(filteredParams);
 
-    router.push(`${pathname}?${params.toString()}`);
+    return router.push(`${pathname}?${params.toString()}`);
   };
 
   const clearAllRefinements = () => {
-    router.push(pathname);
+    return router.push(pathname);
   };
 
   if (!refinements.length) {

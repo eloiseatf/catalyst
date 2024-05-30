@@ -20,7 +20,7 @@ type ValidationPattern =
 type ValidationFunction =
   | ((value: string, formData: FormData) => boolean)
   | ((value: string, formData: FormData) => Promise<boolean>);
-type ControlValidationPatterns = ValidationPattern | ValidationFunction;
+type ControlValidationPatterns = ValidationPattern & ValidationFunction;
 type BuiltInValidityState = {
   [pattern in ValidationPattern]: boolean;
 };
@@ -45,14 +45,18 @@ const Field = forwardRef<
 
 Field.displayName = 'Field';
 
-const FieldMessage = forwardRef<
-  ElementRef<typeof FormPrimitive.Message>,
-  ComponentPropsWithRef<typeof FormPrimitive.Message>
->(({ className, children, ...props }, ref) => (
-  <FormPrimitive.Message className={cn(className)} ref={ref} {...props}>
-    {children}
-  </FormPrimitive.Message>
-));
+interface FieldMessageProps
+  extends Omit<ComponentPropsWithRef<typeof FormPrimitive.Message>, 'match'> {
+  match?: ValidationPattern;
+}
+
+const FieldMessage = forwardRef<ElementRef<typeof FormPrimitive.Message>, FieldMessageProps>(
+  ({ className, children, ...props }, ref) => (
+    <FormPrimitive.Message className={cn(className)} ref={ref} {...props}>
+      {children}
+    </FormPrimitive.Message>
+  ),
+);
 
 FieldMessage.displayName = 'FieldMessage';
 
@@ -68,7 +72,9 @@ const FieldLabel = forwardRef<ElementRef<typeof Label>, FieldLabelProps>(
       {...props}
     >
       <span>{children}</span>
-      {isRequired && <span className="text-xs font-normal text-gray-500">Required</span>}
+      {isRequired && (
+        <span className="text-xs font-normal font-normal text-gray-500">Required</span>
+      )}
     </Label>
   ),
 );

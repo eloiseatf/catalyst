@@ -1,11 +1,11 @@
+import { Badge } from '@bigcommerce/components/badge';
+import { NavigationMenuLink } from '@bigcommerce/components/navigation-menu';
+import { ShoppingCart } from 'lucide-react';
 import { cookies } from 'next/headers';
 import { ReactNode } from 'react';
 
 import { getCart } from '~/client/queries/get-cart';
 import { Link } from '~/components/link';
-import { NavigationMenuLink } from '~/components/ui/navigation-menu';
-
-import { CartIcon } from './cart-icon';
 
 export const CartLink = ({ children }: { children: ReactNode }) => (
   <NavigationMenuLink asChild>
@@ -21,18 +21,20 @@ export const Cart = async () => {
   if (!cartId) {
     return (
       <CartLink>
-        <CartIcon />
+        <ShoppingCart aria-label="cart" />
       </CartLink>
     );
   }
 
   const cart = await getCart(cartId);
 
-  const count = cart?.lineItems.totalQuantity ?? 0;
+  const count = cart?.lineItems.totalQuantity;
 
   return (
     <CartLink>
-      <CartIcon count={count} />
+      <span className="sr-only">Cart Items</span>
+      <ShoppingCart aria-hidden="true" />
+      {Boolean(count) && <Badge> {count}</Badge>}
     </CartLink>
   );
 };

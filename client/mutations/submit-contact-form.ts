@@ -51,5 +51,5 @@ export const submitContactForm = async ({
     variables,
   });
 
-  return response.data.submitContactUs;
+  return response.data;
 };

@@ -184,6 +184,7 @@ export const getProductSearchResults = cache(
 
     const items = removeEdgesAndNodes(searchResults.products).map((product) => ({
       ...product,
+      productOptions: removeEdgesAndNodes(product.productOptions),
       fetchOptions: { next: { revalidate } },
     }));
 

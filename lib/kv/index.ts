@@ -51,7 +51,7 @@ class KV<Adapter extends KvAdapter> implements KvAdapter {
 
     this.logger(`SET - Key: ${fullKey} - Value: ${JSON.stringify(value, null, 2)}`);
 
-    return kv.set(fullKey, value, opts);
+    return kv.set(`${fullKey}`, value, opts);
   }
 
   private async getKv() {
@@ -71,21 +71,25 @@ class KV<Adapter extends KvAdapter> implements KvAdapter {
 }
 
 async function createKVAdapter() {
+  if (process.env.NODE_ENV === 'development' && !process.env.KV_REST_API_URL) {
+    const { DevKvAdapter } = await import('./adapters/dev');
+
+    return new DevKvAdapter();
+  }
+
   if (process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN) {
     const { VercelKvAdapter } = await import('./adapters/vercel');
 
     return new VercelKvAdapter();
   }
 
-  const { MemoryKvAdapter } = await import('./adapters/memory');
+  const { NoopKvAdapter } = await import('./adapters/noop');
 
-  return new MemoryKvAdapter();
+  return new NoopKvAdapter();
 }
 
 const adapterInstance = new KV(createKVAdapter, {
-  logger:
-    (process.env.NODE_ENV !== 'production' && process.env.KV_LOGGER !== 'false') ||
-    process.env.KV_LOGGER === 'true',
+  logger: process.env.NODE_ENV !== 'production' || process.env.KV_LOGGER === 'true',
 });
 
 export { adapterInstance as kv };

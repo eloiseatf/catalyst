@@ -1,59 +1,34 @@
-<a href="https://catalyst.dev" target="_blank" rel="noopener norerrer">
-  <img src="https://storage.googleapis.com/bigcommerce-developers/images/catalyst_readme_banner.png" alt="Catalyst for Composable Commerce Image Banner" title="Catalyst">
-</a>
+# Catalyst Essentials
 
-<br />
+This Catalyst project supports the lab work for BigCommerce Catalyst Essentials.
 
-**Catalyst** is the composable, fully customizable headless ecommerce storefront framework for
-[BigCommerce](https://www.bigcommerce.com/). Catalyst is built with [Next.js](https://nextjs.org/), uses
-our [React](https://react.dev/) storefront components, and is backed by the
-[GraphQL Storefront API](https://developer.bigcommerce.com/docs/storefront/graphql).
+## Prerequisites
 
-By choosing Catalyst, you'll have a fully-functional storefront within a few seconds, and spend zero time on wiring
-up APIs or building SEO, Accessibility, and Performance-optimized ecommerce components you've probably written many
-times before. You can instead go straight to work building your brand and making this your own.
+* Node.js 18.17 or later
 
-<div align="center">
+## Getting Started
 
-![-----------------------------------------------------](https://storage.googleapis.com/bigcommerce-developers/images/catalyst_readme_hr.png)
+Copy the _starter_ branch.
 
-</div>
-
-<p align="center">
- <a href="https://www.catalyst.dev">🚀 catalyst.dev</a> •
- <a href="https://developer.bigcommerce.com/community">🤗 BigCommerce Developer Community</a> •
- <a href="https://github.com/bigcommerce/catalyst/discussions">💬 GitHub Discussions</a>
-</p>
-
-<div align="center">
-
-![-----------------------------------------------------](https://storage.googleapis.com/bigcommerce-developers/images/catalyst_readme_hr.png)
-
-</div>
-
-## Requirements
-
-- Node.js 20+
-- `npm` (or `pnpm`/`yarn`)
-
-## Getting started
-
-If this installation of Catalyst was created using the `catalyst` CLI, you should already be connected to a store and can get started immediately by running:
-
-```shell
-npm run dev
+```
+pnpm create next-app@latest -e \
+  https://github.com/CNanninga/bc-catalyst-essentials/tree/starter \
+  /path/to/working/directory
 ```
 
-If you want to connect to another store or channel, you can run the setup process again by running:
+### Product FAQs
 
-```shell
-npx @bigcommerce/create-catalyst@latest init
+Custom query/component to load "FAQs" on product detail page.
+
+Requires metafields on a product matching the following details:
+
+* `namespace`: "FAQ"
+* `permission`: "read_and_sf_access"
+* `value`: JSON string matching the following schema:
+
 ```
-
-Learn more about Catalyst at [catalyst.dev](https://catalyst.dev).
-
-## Resources
-
-- [GraphQL Storefront API Playground](https://developer.bigcommerce.com/graphql-storefront/playground)
-- [GraphQL Storefront API Explorer](https://developer.bigcommerce.com/graphql-storefront/explorer)
-- [BigCommerce DevDocs](https://developer.bigcommerce.com/docs/build)
+{
+  "question": "Question string",
+  "answer": "Answer string"
+}
+```

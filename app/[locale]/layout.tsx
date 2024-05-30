@@ -8,9 +8,7 @@ import { PropsWithChildren } from 'react';
 
 import '../globals.css';
 
-import { client } from '~/client';
-import { graphql } from '~/client/graphql';
-import { revalidate } from '~/client/revalidate-target';
+import { getStoreSettings } from '~/client/queries/get-store-settings';
 
 import { Notifications } from '../notifications';
 import { Providers } from '../providers';
@@ -21,28 +19,14 @@ const inter = Inter({
   variable: '--font-inter',
 });
 
-const RootLayoutMetadataQuery = graphql(`
-  query RootLayoutMetadataQuery {
-    site {
-      settings {
-        storeName
-      }
-    }
-  }
-`);
-
 export async function generateMetadata(): Promise<Metadata> {
-  const { data } = await client.fetch({
-    document: RootLayoutMetadataQuery,
-    fetchOptions: { next: { revalidate } },
-  });
-
-  const title = data.site.settings?.storeName ?? 'Catalyst Store';
+  const storeSettings = await getStoreSettings();
+  const title = storeSettings?.storeName ?? 'Catalyst Store';
 
   return {
     title: {
       template: `${title} - %s`,
-      default: title,
+      default: `${title}`,
     },
     description: 'Example store built with Catalyst',
     other: {
@@ -67,7 +51,7 @@ export default function RootLayout({ children, params: { locale } }: RootLayoutP
 
   return (
     <html className={`${inter.variable} font-sans`} lang={locale}>
-      <body className="flex h-screen min-w-[375px] flex-col">
+      <body className="flex h-screen flex-col">
         <Notifications />
         <NextIntlClientProvider locale={locale} messages={{ Providers: messages.Providers ?? {} }}>
           <Providers>{children}</Providers>

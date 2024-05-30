@@ -4,7 +4,6 @@ import { getSessionCustomerId } from '~/auth';
 
 import { client } from '..';
 import { graphql } from '../graphql';
-import { TAGS } from '../tags';
 
 const MONEY_FIELDS_FRAGMENT = graphql(`
   fragment MoneyFields on Money {
@@ -24,48 +23,6 @@ const GET_CART_QUERY = graphql(
           lineItems {
             totalQuantity
             physicalItems {
-              name
-              brand
-              imageUrl
-              entityId
-              quantity
-              productEntityId
-              variantEntityId
-              extendedListPrice {
-                ...MoneyFields
-              }
-              extendedSalePrice {
-                ...MoneyFields
-              }
-              selectedOptions {
-                __typename
-                entityId
-                name
-                ... on CartSelectedMultipleChoiceOption {
-                  value
-                  valueEntityId
-                }
-                ... on CartSelectedCheckboxOption {
-                  value
-                  valueEntityId
-                }
-                ... on CartSelectedNumberFieldOption {
-                  number
-                }
-                ... on CartSelectedMultiLineTextFieldOption {
-                  text
-                }
-                ... on CartSelectedTextFieldOption {
-                  text
-                }
-                ... on CartSelectedDateFieldOption {
-                  date {
-                    utc
-                  }
-                }
-              }
-            }
-            digitalItems {
               name
               brand
               imageUrl
@@ -131,7 +88,7 @@ export const getCart = cache(async (cartId?: string) => {
     fetchOptions: {
       cache: 'no-store',
       next: {
-        tags: [TAGS.cart],
+        tags: ['cart'],
       },
     },
   });

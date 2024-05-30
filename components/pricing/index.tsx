@@ -1,68 +1,25 @@
-import { useFormatter } from 'next-intl';
+import { Product } from '../product-card';
 
-import { graphql, ResultOf } from '~/client/graphql';
-
-export const PricingFragment = graphql(`
-  fragment PricingFragment on Product {
-    prices {
-      price {
-        value
-        currencyCode
-      }
-      basePrice {
-        value
-        currencyCode
-      }
-      retailPrice {
-        value
-        currencyCode
-      }
-      salePrice {
-        value
-        currencyCode
-      }
-      priceRange {
-        min {
-          value
-          currencyCode
-        }
-        max {
-          value
-          currencyCode
-        }
-      }
-    }
-  }
-`);
-
-interface Props {
-  data: ResultOf<typeof PricingFragment>;
-}
-
-export const Pricing = ({ data }: Props) => {
-  const format = useFormatter();
-
-  const { prices } = data;
-
+export const Pricing = ({ prices }: { prices: Product['prices'] }) => {
   if (!prices) {
     return null;
   }
 
-  const showPriceRange = prices.priceRange.min.value !== prices.priceRange.max.value;
+  const currencyFormatter = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: prices.price?.currencyCode,
+  });
+
+  const showPriceRange = prices.priceRange?.min?.value !== prices.priceRange?.max?.value;
 
   return (
     <p className="w-36 shrink-0">
-      {showPriceRange ? (
+      {showPriceRange &&
+      prices.priceRange?.min?.value !== undefined &&
+      prices.priceRange.max?.value !== undefined ? (
         <>
-          {format.number(prices.priceRange.min.value, {
-            style: 'currency',
-            currency: prices.price.currencyCode,
-          })}{' '}
-          -{' '}
-          {format.number(prices.priceRange.max.value, {
-            style: 'currency',
-            currency: prices.price.currencyCode,
-          })}
+          {currencyFormatter.format(prices.priceRange.min.value)} -{' '}
+          {currencyFormatter.format(prices.priceRange.max.value)}
         </>
       ) : (
         <>
@@ -70,10 +27,7 @@ export const Pricing = ({ data }: Props) => {
             <>
               MSRP:{' '}
               <span className="line-through">
-                {format.number(prices.retailPrice.value, {
-                  style: 'currency',
-                  currency: prices.price.currencyCode,
-                })}
+                {currencyFormatter.format(prices.retailPrice.value)}
               </span>
               <br />
             </>
@@ -82,29 +36,13 @@ export const Pricing = ({ data }: Props) => {
             <>
               Was:{' '}
               <span className="line-through">
-                {format.number(prices.basePrice.value, {
-                  style: 'currency',
-                  currency: prices.price.currencyCode,
-                })}
+                {currencyFormatter.format(prices.basePrice.value)}
               </span>
               <br />
-              <>
-                Now:{' '}
-                {format.number(prices.salePrice.value, {
-                  style: 'currency',
-                  currency: prices.price.currencyCode,
-                })}
-              </>
+              <>Now: {currencyFormatter.format(prices.salePrice.value)}</>
             </>
           ) : (
-            prices.price.value && (
-              <>
-                {format.number(prices.price.value, {
-                  style: 'currency',
-                  currency: prices.price.currencyCode,
-                })}
-              </>
-            )
+            prices.price?.value && <>{currencyFormatter.format(prices.price.value)}</>
           )}
         </>
       )}

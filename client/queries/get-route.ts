@@ -15,7 +15,6 @@ const GET_ROUTE_QUERY = graphql(`
         }
         node {
           __typename
-          id
           ... on Product {
             entityId
           }
@@ -24,6 +23,9 @@ const GET_ROUTE_QUERY = graphql(`
           }
           ... on Brand {
             entityId
+          }
+          ... on RawHtmlPage {
+            id
           }
         }
       }

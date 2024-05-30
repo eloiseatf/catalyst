@@ -1,11 +1,6 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
-import { ChangeEvent, useState } from 'react';
-import { useFormState, useFormStatus } from 'react-dom';
-
-import { Link } from '~/components/link';
-import { Button } from '~/components/ui/button';
+import { Button } from '@bigcommerce/components/button';
 import {
   Field,
   FieldControl,
@@ -13,50 +8,39 @@ import {
   FieldMessage,
   Form,
   FormSubmit,
-} from '~/components/ui/form';
-import { Input } from '~/components/ui/input';
-import { Message } from '~/components/ui/message';
+} from '@bigcommerce/components/form';
+import { Input } from '@bigcommerce/components/input';
+import { Message } from '@bigcommerce/components/message';
+import { Loader2 as Spinner } from 'lucide-react';
+import { useTranslations } from 'next-intl';
+import { ChangeEvent, useState } from 'react';
+import { useFormState, useFormStatus } from 'react-dom';
+
+import { Link } from '~/components/link';
 
 import { submitLoginForm } from '../_actions/submit-login-form';
 
-const SubmitButton = () => {
-  const { pending } = useFormStatus();
-  const t = useTranslations('Account.Login');
-
-  return (
-    <Button
-      className="md:w-auto"
-      loading={pending}
-      loadingText={t('Form.submitting')}
-      variant="primary"
-    >
-      {t('Form.logIn')}
-    </Button>
-  );
-};
-
 export const LoginForm = () => {
+  const { pending } = useFormStatus();
   const [isEmailValid, setIsEmailValid] = useState(true);
   const [isPasswordValid, setIsPasswordValid] = useState(true);
   const [state, formAction] = useFormState(submitLoginForm, { status: 'idle' });
 
   const t = useTranslations('Account.Login');
 
-  const isFormInvalid = state?.status === 'error';
+  const isFormInvalid = state?.status === 'failed';
 
   const handleInputValidation = (e: ChangeEvent<HTMLInputElement>) => {
     const validationStatus = e.target.validity.valueMissing;
 
     switch (e.target.name) {
-      case 'email': {
-        setIsEmailValid(!validationStatus);
+      case 'email':
+        return setIsEmailValid(!validationStatus);
 
-        return;
-      }
+      case 'password':
+        return setIsPasswordValid(!validationStatus);
 
-      case 'password': {
-        setIsPasswordValid(!validationStatus);
-      }
+      default:
     }
   };
 
@@ -115,7 +99,16 @@ export const LoginForm = () => {
         </Field>
         <div className="flex flex-col items-start md:flex-row md:items-center md:justify-start md:gap-10">
           <FormSubmit asChild>
-            <SubmitButton />
+            <Button className="w-auto" disabled={pending} variant="primary">
+              {pending ? (
+                <>
+                  <Spinner aria-hidden="true" className="animate-spin" />
+                  <span className="sr-only"> {t('Form.submitting')}</span>
+                </>
+              ) : (
+                <span>{t('Form.logIn')}</span>
+              )}
+            </Button>
           </FormSubmit>
           <Link
             className="my-5 inline-flex items-center justify-start text-primary hover:text-secondary md:my-0"

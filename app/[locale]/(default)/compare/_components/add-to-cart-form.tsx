@@ -27,7 +27,7 @@ export const AddToCartForm = ({
         const result = await addToCart(formData);
         const quantity = Number(formData.get('quantity'));
 
-        if (result.error) {
+        if (result?.error) {
           toast.error(result.error, { icon: <AlertCircle className="text-error-secondary" /> });
 
           return;
@@ -40,12 +40,7 @@ export const AddToCartForm = ({
                 {t.rich('addedProductQuantity', {
                   cartItems: quantity,
                   cartLink: (chunks) => (
-                    <Link
-                      className="font-semibold text-primary"
-                      href="/cart"
-                      prefetch="viewport"
-                      prefetchKind="full"
-                    >
+                    <Link className="font-semibold text-primary" href="/cart">
                       {chunks}
                     </Link>
                   ),

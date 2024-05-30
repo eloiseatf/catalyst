@@ -158,7 +158,7 @@ const CarouselContent = forwardRef<ElementRef<'div'>, ComponentPropsWithRef<'div
 
     return (
       <div className="-mx-2 overflow-hidden px-2" ref={carouselRef}>
-        <div className={cn('-mx-4 mb-16 mt-8 flex lg:mt-10', className)} ref={ref} {...props}>
+        <div className={cn('-mx-6 mb-16 mt-8 flex lg:mt-10', className)} ref={ref} {...props}>
           {children}
         </div>
       </div>
@@ -178,7 +178,7 @@ const CarouselItem = forwardRef<
     <div
       aria-roledescription="slide"
       className={cn(
-        'grid min-w-0 shrink-0 grow-0 basis-full grid-cols-2 gap-6 px-4 md:grid-cols-4 lg:gap-8',
+        'grid min-w-0 shrink-0 grow-0 basis-full grid-cols-2 gap-6 px-6 md:grid-cols-4 lg:gap-8',
         !slidesInView.includes(index) && 'invisible',
         className,
       )}
@@ -202,7 +202,7 @@ const CarouselPreviousIndicator = forwardRef<ElementRef<'button'>, ComponentProp
       <button
         aria-label="Previous products"
         className={cn(
-          'inline-flex h-12 w-12 items-center justify-center focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/20 disabled:text-gray-400',
+          'inline-flex h-12 w-12 items-center justify-center focus:outline-none focus:ring-4 focus:ring-primary/20 disabled:text-gray-400',
           isHidden && 'hidden',
           className,
         )}
@@ -229,7 +229,7 @@ const CarouselNextIndicator = forwardRef<ElementRef<'button'>, ComponentPropsWit
       <button
         aria-label="Next products"
         className={cn(
-          'inline-flex h-12 w-12 items-center justify-center focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/20 disabled:text-gray-400',
+          'inline-flex h-12 w-12 items-center justify-center focus:outline-none focus:ring-4 focus:ring-primary/20 disabled:text-gray-400',
           isHidden && 'hidden',
           className,
         )}
@@ -291,7 +291,7 @@ const CarouselPaginationTab = forwardRef<
     <button
       aria-selected={isSelected}
       className={cn(
-        "h-7 w-7 p-0.5 after:block after:h-0.5 after:w-full after:bg-gray-400 after:content-[''] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/20",
+        "h-7 w-7 p-0.5 after:block after:h-0.5 after:w-full after:bg-gray-400 after:content-[''] focus:outline-none focus:ring-4 focus:ring-primary/20",
         isSelected && 'after:bg-black',
         className,
       )}

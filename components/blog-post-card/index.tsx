@@ -1,7 +1,3 @@
-import { getFormatter, getLocale } from 'next-intl/server';
-
-import { FragmentOf, graphql } from '~/client/graphql';
-import { Link } from '~/components/link';
 import {
   BlogPostAuthor,
   BlogPostBanner,
@@ -10,67 +6,52 @@ import {
   BlogPostImage,
   BlogPostTitle,
   BlogPostCard as ComponentsBlogPostCard,
-} from '~/components/ui/blog-post-card';
+} from '@bigcommerce/components/blog-post-card';
+
+import { getBlogPosts } from '~/client/queries/get-blog-posts';
+import { ExistingResultType } from '~/client/util';
+import { Link } from '~/components/link';
 
 import { BcImage } from '../bc-image';
 
-export const BlogPostCardFragment = graphql(`
-  fragment BlogPostCardFragment on BlogPost {
-    author
-    entityId
-    name
-    plainTextSummary
-    publishedDate {
-      utc
-    }
-    thumbnailImage {
-      url: urlTemplate
-      altText
-    }
-  }
-`);
-
-interface Props {
-  data: FragmentOf<typeof BlogPostCardFragment>;
+interface BlogPostCardProps {
+  blogPost: ExistingResultType<typeof getBlogPosts>['posts']['items'][number];
 }
 
-export const BlogPostCard = async ({ data }: Props) => {
-  const locale = await getLocale();
-  const format = await getFormatter({ locale });
+export const BlogPostCard = ({ blogPost }: BlogPostCardProps) => (
+  <ComponentsBlogPostCard>
+    {blogPost.thumbnailImage ? (
+      <BlogPostImage>
+        <Link className="block w-full" href={`/blog/${blogPost.entityId}`}>
+          <BcImage
+            alt={blogPost.thumbnailImage.altText}
+            className="h-full w-full object-cover object-center"
+            height={300}
+            src={blogPost.thumbnailImage.url}
+            width={300}
+          />
+        </Link>
+      </BlogPostImage>
+    ) : (
+      <BlogPostBanner>
+        <BlogPostTitle variant="inBanner">
+          <span className="line-clamp-3 text-primary">{blogPost.name}</span>
+        </BlogPostTitle>
+        <BlogPostDate variant="inBanner">
+          <span className="text-primary">
+            {new Intl.DateTimeFormat('en-US').format(new Date(blogPost.publishedDate.utc))}
+          </span>
+        </BlogPostDate>
+      </BlogPostBanner>
+    )}
 
-  return (
-    <ComponentsBlogPostCard>
-      {data.thumbnailImage ? (
-        <BlogPostImage>
-          <Link className="block w-full" href={`/blog/${data.entityId}`}>
-            <BcImage
-              alt={data.thumbnailImage.altText}
-              className="h-full w-full object-cover object-center"
-              height={300}
-              src={data.thumbnailImage.url}
-              width={300}
-            />
-          </Link>
-        </BlogPostImage>
-      ) : (
-        <BlogPostBanner>
-          <BlogPostTitle variant="inBanner">
-            <span className="line-clamp-3 text-primary">{data.name}</span>
-          </BlogPostTitle>
-          <BlogPostDate variant="inBanner">
-            <span className="text-primary">
-              {format.dateTime(new Date(data.publishedDate.utc))}
-            </span>
-          </BlogPostDate>
-        </BlogPostBanner>
-      )}
-
-      <BlogPostTitle>
-        <Link href={`/blog/${data.entityId}`}>{data.name}</Link>
-      </BlogPostTitle>
-      <BlogPostContent>{data.plainTextSummary}</BlogPostContent>
-      <BlogPostDate>{format.dateTime(new Date(data.publishedDate.utc))}</BlogPostDate>
-      {data.author ? <BlogPostAuthor>, by {data.author}</BlogPostAuthor> : null}
-    </ComponentsBlogPostCard>
-  );
-};
+    <BlogPostTitle>
+      <Link href={`/blog/${blogPost.entityId}`}>{blogPost.name}</Link>
+    </BlogPostTitle>
+    <BlogPostContent>{blogPost.plainTextSummary}</BlogPostContent>
+    <BlogPostDate>
+      {new Intl.DateTimeFormat('en-US').format(new Date(blogPost.publishedDate.utc))}
+    </BlogPostDate>
+    {blogPost.author ? <BlogPostAuthor>, by {blogPost.author}</BlogPostAuthor> : null}
+  </ComponentsBlogPostCard>
+);

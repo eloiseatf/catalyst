@@ -78,8 +78,7 @@ export const PublicSearchParamsSchema = z.object({
   after: z.string().optional(),
   before: z.string().optional(),
   brand: SearchParamToArray.transform((value) => value?.map(Number)),
-  category: z.coerce.number().optional(),
-  categoryIn: SearchParamToArray.transform((value) => value?.map(Number)),
+  category: SearchParamToArray.transform((value) => value?.map(Number)),
   isFeatured: z.coerce.boolean().optional(),
   limit: z.coerce.number().optional(),
   minPrice: z.coerce.number().optional(),
@@ -102,14 +101,13 @@ const AttributeKey = z.custom<`attr_${string}`>((val) => {
   return typeof val === 'string' ? /^attr_\w+$/.test(val) : false;
 });
 
-const PublicToPrivateParams = PublicSearchParamsSchema.catchall(SearchParamToArray)
+export const PublicToPrivateParams = PublicSearchParamsSchema.catchall(SearchParamToArray)
   .transform((publicParams) => {
     const { after, before, limit, sort, ...filters } = publicParams;
 
     const {
       brand,
       category,
-      categoryIn,
       isFeatured,
       minPrice,
       maxPrice,
@@ -139,8 +137,7 @@ const PublicToPrivateParams = PublicSearchParamsSchema.catchall(SearchParamToArr
       sort,
       filters: {
         brandEntityIds: brand,
-        categoryEntityId: category,
-        categoryEntityIds: categoryIn,
+        categoryEntityIds: category,
         hideOutOfStock: stock?.includes('in_stock'),
         isFreeShipping: shipping?.includes('free_shipping'),
         isFeatured,

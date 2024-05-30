@@ -1,13 +1,13 @@
 'use client';
 
-import { removeEdgesAndNodes } from '@bigcommerce/catalyst-client';
+import { Button } from '@bigcommerce/components/button';
 import { AlertCircle, Check, Heart } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { FormProvider } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 
-import { FragmentOf } from '~/client/graphql';
-import { Button } from '~/components/ui/button';
+import { getProduct } from '~/client/queries/get-product';
+import { ExistingResultType } from '~/client/util';
 
 import { Link } from '../link';
 
@@ -20,24 +20,20 @@ import { MultipleChoiceField } from './fields/multiple-choice-field';
 import { NumberField } from './fields/number-field';
 import { QuantityField } from './fields/quantity-field';
 import { TextField } from './fields/text-field';
-import { ProductFormFragment } from './fragment';
 import { ProductFormData, useProductForm } from './use-product-form';
 
-interface Props {
-  product: FragmentOf<typeof ProductFormFragment>;
-}
+type Product = ExistingResultType<typeof getProduct>;
 
-export const ProductForm = ({ product }: Props) => {
+export const ProductForm = ({ product }: { product: Product }) => {
   const t = useTranslations('Product.Form');
-  const productOptions = removeEdgesAndNodes(product.productOptions);
 
   const { handleSubmit, register, ...methods } = useProductForm();
 
   const productFormSubmit = async (data: ProductFormData) => {
-    const result = await handleAddToCart(data, product);
+    const result = await handleAddToCart(data);
     const quantity = Number(data.quantity);
 
-    if (result.error) {
+    if (result?.error) {
       toast.error(result.error || t('errorMessage'), {
         icon: <AlertCircle className="text-error-secondary" />,
       });
@@ -52,12 +48,7 @@ export const ProductForm = ({ product }: Props) => {
             {t.rich('addedProductQuantity', {
               cartItems: quantity,
               cartLink: (chunks) => (
-                <Link
-                  className="font-semibold text-primary hover:text-secondary"
-                  href="/cart"
-                  prefetch="viewport"
-                  prefetchKind="full"
-                >
+                <Link className="font-semibold text-primary hover:text-secondary" href="/cart">
                   {chunks}
                 </Link>
               ),
@@ -74,7 +65,7 @@ export const ProductForm = ({ product }: Props) => {
       <form className="flex flex-col gap-6 @container" onSubmit={handleSubmit(productFormSubmit)}>
         <input type="hidden" value={product.entityId} {...register('product_id')} />
 
-        {productOptions.map((option) => {
+        {product.productOptions?.map((option) => {
           if (option.__typename === 'MultipleChoiceOption') {
             return <MultipleChoiceField key={option.entityId} option={option} />;
           }

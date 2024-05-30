@@ -1,18 +1,10 @@
 import { useTranslations } from 'next-intl';
 
-import { FragmentOf, graphql } from '~/client/graphql';
+import { getProduct } from '~/client/queries/get-product';
 
-export const WarrantyFragment = graphql(`
-  fragment WarrantyFragment on Product {
-    warranty
-  }
-`);
+type Product = Awaited<ReturnType<typeof getProduct>>;
 
-interface Props {
-  product: FragmentOf<typeof WarrantyFragment>;
-}
-
-export const Warranty = ({ product }: Props) => {
+export const Warranty = ({ product }: { product: NonNullable<Product> }) => {
   const t = useTranslations('Product.Details');
 
   if (!product.warranty) {

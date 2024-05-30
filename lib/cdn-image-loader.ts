@@ -1,6 +1,6 @@
 'use client';
 
-const addCompressionParam = (url: string, lossy: boolean): string => {
+export const addCompressionParam = (url: string, lossy: boolean): string => {
   const urlObj = new URL(url);
 
   const paramValue = lossy ? 'lossy' : 'lossless';

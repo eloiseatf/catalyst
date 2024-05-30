@@ -1,6 +1,4 @@
-import Image from 'next/image';
-
-import { Button } from '~/components/ui/button';
+import { Button } from '@bigcommerce/components/button';
 import {
   Slideshow,
   SlideshowAutoplayControl,
@@ -10,7 +8,8 @@ import {
   SlideshowPagination,
   SlideshowPreviousIndicator,
   SlideshowSlide,
-} from '~/components/ui/slideshow';
+} from '@bigcommerce/components/slideshow';
+import Image from 'next/image';
 
 import SlideshowBG from './slideshow-bg-01.jpg';
 

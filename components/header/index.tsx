@@ -1,10 +1,4 @@
-import { ShoppingCart, User } from 'lucide-react';
-import { ReactNode, Suspense } from 'react';
-
-import { getSessionCustomerId } from '~/auth';
-import { FragmentOf, graphql } from '~/client/graphql';
-import { Link } from '~/components/link';
-import { Button } from '~/components/ui/button';
+import { Button } from '@bigcommerce/components/button';
 import {
   NavigationMenu,
   NavigationMenuCollapsed,
@@ -12,62 +6,43 @@ import {
   NavigationMenuLink,
   NavigationMenuList,
   NavigationMenuToggle,
-} from '~/components/ui/navigation-menu';
+} from '@bigcommerce/components/navigation-menu';
+import { ShoppingCart, User } from 'lucide-react';
+import { ReactNode, Suspense } from 'react';
+
+import { getSessionCustomerId } from '~/auth';
+import { Link } from '~/components/link';
 
 import { QuickSearch } from '../quick-search';
-import { StoreLogo, StoreLogoFragment } from '../store-logo';
+import { StoreLogo } from '../store-logo';
 
+import { HeaderNav } from './_actions/header-nav';
 import { logout } from './_actions/logout';
 import { CartLink } from './cart';
-import { HeaderNav, HeaderNavFragment } from './header-nav';
 
-export const HeaderFragment = graphql(
-  `
-    fragment HeaderFragment on Site {
-      settings {
-        ...StoreLogoFragment
-      }
-      ...HeaderNavFragment
-    }
-  `,
-  [StoreLogoFragment, HeaderNavFragment],
-);
-
-interface Props {
-  cart: ReactNode;
-  data: FragmentOf<typeof HeaderFragment>;
-}
-
-export const Header = async ({ cart, data }: Props) => {
+export const Header = async ({ cart }: { cart: ReactNode }) => {
   const customerId = await getSessionCustomerId();
 
   return (
     <header>
       <NavigationMenu>
-        {data.settings && (
-          <NavigationMenuLink
-            asChild
-            className="flex-1 overflow-hidden text-ellipsis px-0 xl:flex-none"
-          >
-            <Link href="/">
-              <StoreLogo data={data.settings} />
-            </Link>
-          </NavigationMenuLink>
-        )}
+        <NavigationMenuLink asChild className="shrink-0 px-0">
+          <Link href="/">
+            <StoreLogo />
+          </Link>
+        </NavigationMenuLink>
 
-        <HeaderNav className="hidden xl:flex" data={data.categoryTree} />
+        <HeaderNav className="hidden xl:flex" />
 
         <div className="flex">
           <NavigationMenuList className="h-full">
-            {data.settings && (
-              <NavigationMenuItem className="hidden sm:block">
-                <QuickSearch>
-                  <Link className="flex" href="/">
-                    <StoreLogo data={data.settings} />
-                  </Link>
-                </QuickSearch>
-              </NavigationMenuItem>
-            )}
+            <NavigationMenuItem>
+              <QuickSearch>
+                <Link className="flex" href="/">
+                  <StoreLogo />
+                </Link>
+              </QuickSearch>
+            </NavigationMenuItem>
             <NavigationMenuItem className={`hidden xl:flex ${customerId ? 'self-stretch' : ''}`}>
               {customerId ? (
                 <div className="group/account flex cursor-pointer items-center">
@@ -177,7 +152,7 @@ export const Header = async ({ cart, data }: Props) => {
         </div>
 
         <NavigationMenuCollapsed>
-          <HeaderNav data={data.categoryTree} inCollapsedNav />
+          <HeaderNav inCollapsedNav />
         </NavigationMenuCollapsed>
       </NavigationMenu>
     </header>

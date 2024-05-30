@@ -8,7 +8,6 @@ export const ResetPasswordSchema = z.object({
 });
 
 type SubmitResetPassword = z.infer<typeof ResetPasswordSchema> & {
-  path: string;
   reCaptchaToken?: string;
 };
 
@@ -28,11 +27,10 @@ const SUBMIT_RESET_PASSWORD_MUTATION = graphql(`
   }
 `);
 
-export const submitResetPassword = async ({ email, path, reCaptchaToken }: SubmitResetPassword) => {
+export const submitResetPassword = async ({ email, reCaptchaToken }: SubmitResetPassword) => {
   const variables = {
     input: {
       email,
-      path,
     },
     ...(reCaptchaToken && { reCaptchaV2: { token: reCaptchaToken } }),
   };
@@ -42,5 +40,5 @@ export const submitResetPassword = async ({ email, path, reCaptchaToken }: Submi
     variables,
   });
 
-  return response.data.customer.requestResetPassword;
+  return response.data;
 };

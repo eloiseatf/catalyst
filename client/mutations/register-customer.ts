@@ -29,7 +29,7 @@ const REGISTER_CUSTOMER_MUTATION = graphql(`
 `);
 
 type Variables = VariablesOf<typeof REGISTER_CUSTOMER_MUTATION>;
-export type Input = Variables['input'];
+type Input = Variables['input'];
 
 interface RegisterCustomer {
   formFields: Input;
